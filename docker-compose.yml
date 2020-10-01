@@ -1,29 +1,22 @@
----
-version: '3.7'
+version: '3.3'
 services:
   nginx:
-    build: 
-      context: ./
-      dockerfile: Dockerfile.nginx
-    image: defectdojo/defectdojo-nginx:${NGINX_VERSION:-latest}
+    image: devsecopsacademy/dojo:nginx
     depends_on:
       - uwsgi
     environment: 
       NGINX_METRICS_ENABLED: ${NGINX_METRICS_ENABLED:-false}
     ports:
-      - target: ${DD_PORT:-8080}
-        published: ${DD_PORT:-8080}
+      - target: 8080
+        published: 8080
         protocol: tcp
         mode: host
-      - target: ${DD_PORT:-8443}
-        published: ${DD_PORT:-8443}
+      - target: 8443
+        published: 8443
         protocol: tcp
         mode: host
   uwsgi:
-    build: 
-      context: ./
-      dockerfile: Dockerfile.django
-    image: defectdojo/defectdojo-django:${DJANGO_VERSION:-latest}
+    image: devsecopsacademy/dojo:uwsgi
     depends_on:
       - mysql
     entrypoint: ['/wait-for-it.sh', 'mysql:3306', '-t', '30', '--', '/entrypoint-uwsgi.sh']
@@ -37,7 +30,7 @@ services:
       DD_SECRET_KEY: ${DD_SECRET_KEY:-hhZCp@D28z!n@NED*yB!ROMt+WzsY*iq}
       DD_CREDENTIAL_AES_256_KEY: ${DD_CREDENTIAL_AES_256_KEY:-&91a*agLqesc*0DJ+2*bAbsUZfR*4nLw}
   celerybeat:
-    image: defectdojo/defectdojo-django:latest
+    image: devsecopsacademy/dojo:celerybeat
     depends_on:
       - mysql
       - rabbitmq
@@ -49,7 +42,7 @@ services:
       DD_SECRET_KEY: ${DD_SECRET_KEY:-hhZCp@D28z!n@NED*yB!ROMt+WzsY*iq}
       DD_CREDENTIAL_AES_256_KEY: ${DD_CREDENTIAL_AES_256_KEY:-&91a*agLqesc*0DJ+2*bAbsUZfR*4nLw}
   celeryworker:
-    image: defectdojo/defectdojo-django:latest
+    image: devsecopsacademy/dojo:celeryworker
     depends_on:
       - mysql
       - rabbitmq
@@ -61,7 +54,7 @@ services:
       DD_SECRET_KEY: ${DD_SECRET_KEY:-hhZCp@D28z!n@NED*yB!ROMt+WzsY*iq}
       DD_CREDENTIAL_AES_256_KEY: ${DD_CREDENTIAL_AES_256_KEY:-&91a*agLqesc*0DJ+2*bAbsUZfR*4nLw}
   initializer:
-    image: defectdojo/defectdojo-django:latest
+    image: devsecopsacademy/dojo:initializer
     depends_on:
       - mysql
     entrypoint: ['/wait-for-it.sh', 'mysql:3306', '--', '/entrypoint-initializer.sh']
@@ -75,7 +68,7 @@ services:
       DD_SECRET_KEY: ${DD_SECRET_KEY:-hhZCp@D28z!n@NED*yB!ROMt+WzsY*iq}
       DD_CREDENTIAL_AES_256_KEY: ${DD_CREDENTIAL_AES_256_KEY:-&91a*agLqesc*0DJ+2*bAbsUZfR*4nLw}
   mysql:
-    image: mysql:5.7.29@sha256:8044616c01e46c6bc826d205103a2b650a1679be2f34beab9bbf6c6f642df673
+    image: devsecopsacademy/dojo:mysql
     environment:
       MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
       DD_DATABASE_URL: ${DD_DATABASE_URL:-mysql://defectdojo:defectdojo@mysql:3306/defectdojo}
@@ -86,6 +79,6 @@ services:
     volumes:
        - defectdojo_data:/var/lib/mysql
   rabbitmq:
-    image: rabbitmq:3.7.26@sha256:be00c655a6d4a1012358a3a51d57e2b33d926b181a65863a568adc103edfdb91
+    image: devsecopsacademy/dojo:rabbitmq
 volumes:
   defectdojo_data: {}
